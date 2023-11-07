@@ -11,6 +11,8 @@
 #include <ESP8266mDNS.h>        // Include the mDNS library
 #include <ezButton.h>
 
+#define COMPUTER "Computer"
+
 AsyncWebServer server(80);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 #define NEOPIN  12
@@ -343,7 +345,7 @@ void setup()
   {
     epochTime = timeClient.getEpochTime();
     tm *ptm = gmtime ((time_t *)&epochTime);
-    currentTime = DateTime((ptm->tm_year+1900), (ptm->tm_mon+1), (ptm->tm_mday) ,(timeClient.getHours()+1), timeClient.getMinutes(), timeClient.getSeconds());
+    currentTime = DateTime((ptm->tm_year+1900), (ptm->tm_mon+1), (ptm->tm_mday) ,(timeClient.getHours()), timeClient.getMinutes(), timeClient.getSeconds());
 
     rtc.adjust(currentTime);
     request->send(204); 
@@ -380,8 +382,6 @@ void setup()
   server.onNotFound(notFound);
   AsyncElegantOTA.begin(&server);
   server.begin();
-
-  
 }
 
 void loop()
@@ -459,14 +459,13 @@ void loop()
     pixels.setBrightness(brightness);
     lcd.noBacklight();
   }
-  else if(now.hour() == 6 & now.minute() == 0)
+  else if(now.hour() == 7 & now.minute() == 30)
   {
     brightness = 255;
     pixels.setBrightness(brightness);
     lcd.backlight();
   }
   ////////////////////////////////////////////
-
   delay(500);
 }
 
