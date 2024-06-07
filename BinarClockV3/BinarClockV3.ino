@@ -61,6 +61,8 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 
 DateTime now;
 
+int swt = 1;
+
 int tag = 99;
 int day = 0;
 int hour = 0;
@@ -91,7 +93,7 @@ const char index_html[] PROGMEM = R"rawliteral(
   </head>
   <body bgcolor = '#70706F'>
   <hr/><hr>
-  <h1 style='color : #3AAA35;'><center> Binar-Clock V2.2 Control Center</center></h1>
+  <h1 style='color : #3AAA35;'><center> Binar-Clock V3 Control Center</center></h1>
   <hr/><hr>
   <br/><br>
   <center>
@@ -104,6 +106,10 @@ const char index_html[] PROGMEM = R"rawliteral(
   LCD-Off
   <a href='/light1on'><button>Turn On </button></a>
   <a href='/light1off'><button>Turn Off </button></a><br/>
+  <br/><br>
+
+  Summer/Winter Time
+  <a href='/switchSW'><button>Switch </button></a>
   <br/><br>
 
   Synchronize Time
@@ -341,11 +347,21 @@ void setup()
     request->send(204);
   });
 
+  server.on("/switchSW", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
+    if(swt)
+      swt = 0;
+    else
+      swt = 1;
+
+    request->send(204);
+  });
+
   server.on("/syncTime", HTTP_GET, [](AsyncWebServerRequest *request)
   {
     epochTime = timeClient.getEpochTime();
     tm *ptm = gmtime ((time_t *)&epochTime);
-    currentTime = DateTime((ptm->tm_year+1900), (ptm->tm_mon+1), (ptm->tm_mday) ,(timeClient.getHours()), timeClient.getMinutes(), timeClient.getSeconds());
+    currentTime = DateTime((ptm->tm_year+1900), (ptm->tm_mon+swt), (ptm->tm_mday) ,(timeClient.getHours()), timeClient.getMinutes(), timeClient.getSeconds());
 
     rtc.adjust(currentTime);
     request->send(204); 
@@ -452,20 +468,6 @@ void loop()
   char buf2[] = "DD/MM/YYYY    ";
   lcd.println(now.toString(buf2));
 
-  //Evening Mode////////////////////////////////
-  if(now.hour() == 22 & now.minute() == 0)
-  {
-    brightness = 0;
-    pixels.setBrightness(brightness);
-    lcd.noBacklight();
-  }
-  else if(now.hour() == 7 & now.minute() == 30)
-  {
-    brightness = 255;
-    pixels.setBrightness(brightness);
-    lcd.backlight();
-  }
-  ////////////////////////////////////////////
   delay(500);
 }
 
